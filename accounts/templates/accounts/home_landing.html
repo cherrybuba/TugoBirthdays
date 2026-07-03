@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}TugoBirthdays — Главная{% endblock %}
+{% block content %}
+<div class="card profile-card">
+    <h1>TugoBirthdays</h1>
+    <p style="margin: 1rem 0; color: #666;">Система для организации поздравлений с днем рождения</p>
+    <p style="margin-bottom: 1.5rem;">Не пропускайте важные даты ваших друзей. Узнавайте о приближающихся днях рождения заранее, выбирайте подарки и обсуждайте поздравления.</p>
+    <a href="{% url 'accounts:register' %}" class="btn btn-primary">Начать</a>
+    <a href="{% url 'accounts:login' %}" class="btn btn-secondary" style="margin-left: 0.5rem;">Войти</a>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Мои группы — TugoBirthdays{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Мои группы</h2>
+    <div style="display:flex; gap:0.5rem; margin: 0.5rem 0;">
+        <a href="{% url 'friends:group_create' %}" class="btn btn-primary btn-sm">Создать группу</a>
+        <a href="{% url 'friends:group_search' %}" class="btn btn-secondary btn-sm">Найти группу</a>
+    </div>
+    {% if groups %}
+    <div style="margin-top: 1rem;">
+        {% for g in groups %}
+        <div class="list-item">
+            <a href="{% url 'friends:group_detail' g.id %}">{{ g.name }}</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:#999; margin-top:1rem;">Вы пока не состоите ни в одной группе.</p>
+    {% endif %}
+</div>
+
+{% if subscribed_groups %}
+<div class="card">
+    <h2>Подписки на группы</h2>
+    <div style="margin-top: 1rem;">
+        {% for g in subscribed_groups %}
+        <div class="list-item">
+            <a href="{% url 'friends:group_detail' g.id %}">{{ g.name }}</a>
+            <span style="color:#3498db; font-size:0.85rem;">Подписан</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

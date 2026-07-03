@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load calendar_extras %}
+{% block title %}{{ profile_user.get_full_name|default:profile_user.username }} — TugoBirthdays{% endblock %}
+{% block content %}
+<div class="card profile-card">
+    {% if profile_user.profile.avatar %}
+    <img src="{{ profile_user.profile.avatar.url }}" alt="Аватар" class="avatar">
+    {% endif %}
+    <h2>{{ profile_user.get_full_name|default:profile_user.username }}</h2>
+    <p class="profile-meta">
+        {% if profile_user.profile.birthday %}
+            День рождения: {{ profile_user.profile.birthday|date:"d F Y" }}
+            {% if not is_owner and user.is_authenticated %}
+            <a href="{{ profile_user.profile.birthday|google_calendar_url:profile_user.get_full_name }}" target="_blank" class="btn btn-secondary btn-sm" style="margin-left:0.5rem;">+ Google Календарь</a>
+            {% endif %}
+        {% else %}
+            Дата рождения не указана
+        {% endif %}
+    </p>
+
+    {% if is_owner %}
+    <div style="margin: 1rem 0;">
+        <a href="{% url 'accounts:profile_edit_form' %}" class="btn btn-secondary btn-sm">Редактировать профиль</a>
+    </div>
+    {% elif user.is_authenticated %}
+    <div style="margin: 1rem 0;">
+        {% if is_friend %}
+            <a href="{% url 'friends:friend_remove' profile_user.id %}" class="btn btn-danger btn-sm">Удалить из друзей</a>
+        {% elif friendship_status == 'pending' %}
+            <span style="color:#e67e22;">Заявка отправлена</span>
+        {% else %}
+            <a href="{% url 'friends:friend_add' profile_user.id %}" class="btn btn-primary btn-sm">Добавить в друзья</a>
+        {% endif %}
+        <button class="sub-toggle {% if is_subscribed %}active{% endif %}"
+                data-url="{% url 'notifications:subscribe_user' profile_user.id %}">
+            {% if is_subscribed %}Отписаться{% else %}Подписаться{% endif %}
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Группы</h2>
+    {% if groups %}
+    <ul style="margin-top: 0.5rem;">
+        {% for m in groups %}
+        <li><a href="{% url 'friends:group_detail' m.group.id %}">{{ m.group.name }}</a></li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="color: #999;">Не состоит ни в одной группе</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Список желаний</h2>
+    {% if wishlist %}
+    <div style="margin-top: 0.5rem;">
+        {% for item in wishlist %}
+        <div class="wishlist-item {% if item.is_purchased %}purchased{% endif %}">
+            <div>
+                <strong>{{ item.title }}</strong>
+                {% if item.description %}<p style="color:#666;">{{ item.description }}</p>{% endif %}
+                {% if item.price %}<p style="color:#27ae60;">{{ item.price }} руб.</p>{% endif %}
+                {% if item.link %}<p><a href="{{ item.link }}" target="_blank">Ссылка</a></p>{% endif %}
+                {% if item.is_purchased %}
+                <span class="reserved-badge">Забронировано{% if not is_owner and item.purchased_by %} — {{ item.purchased_by.get_full_name|default:item.purchased_by.username }}{% endif %}</span>
+                {% endif %}
+            </div>
+            <div>
+                {% if is_owner %}
+                <a href="{% url 'gifts:wishlist_edit' item.id %}" class="btn btn-secondary btn-sm">Ред.</a>
+                <a href="{% url 'gifts:wishlist_delete' item.id %}" class="btn btn-danger btn-sm">Удалить</a>
+                {% elif is_friend and not item.is_purchased %}
+                <button class="btn btn-success btn-sm reserve-btn" data-url="{% url 'gifts:wishlist_purchase' item.id %}">Забронировать</button>
+                {% elif item.is_purchased and item.purchased_by == user %}
+                <button class="btn btn-danger btn-sm reserve-btn" data-url="{% url 'gifts:wishlist_unreserve' item.id %}">Снять бронь</button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: #999;">Список желаний пуст</p>
+    {% endif %}
+    {% if is_owner %}
+    <a href="{% url 'gifts:wishlist_add' %}" class="btn btn-primary btn-sm" style="margin-top:0.5rem;">Добавить подарок</a>
+    {% endif %}
+</div>
+
+{% if user.is_authenticated and not is_owner and is_friend %}
+<div class="card">
+    <h2><a href="{% url 'gifts:discussion' profile_user.id %}">Чат для обсуждения подарка</a></h2>
+    <p style="color:#666;">Перейти в чат для обсуждения подарка для именинника</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.reserve-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            apiPost(btn.dataset.url).then(function(data) {
+                var item = btn.closest('.wishlist-item');
+                if (data.status === 'reserved') {
+                    item.classList.add('purchased');
+                    btn.className = 'btn btn-danger btn-sm reserve-btn';
+                    btn.textContent = 'Снять бронь';
+                    btn.dataset.url = btn.dataset.url.replace('purchase', 'unreserve');
+                    var badge = document.createElement('span');
+                    badge.className = 'reserved-badge';
+                    badge.textContent = 'Забронировано — ' + data.by;
+                    item.querySelector('div').appendChild(badge);
+                } else if (data.status === 'unreserved') {
+                    item.classList.remove('purchased');
+                    btn.className = 'btn btn-success btn-sm reserve-btn';
+                    btn.textContent = 'Забронировать';
+                    btn.dataset.url = btn.dataset.url.replace('unreserve', 'purchase');
+                    var oldBadge = item.querySelector('.reserved-badge');
+                    if (oldBadge) oldBadge.remove();
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

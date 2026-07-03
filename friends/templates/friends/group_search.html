@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Поиск групп — TugoBirthdays{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Поиск групп</h2>
+    <form method="get" style="margin: 1rem 0;">
+        <div class="form-group" style="display:flex; gap:0.5rem;">
+            <input type="text" name="q" value="{{ query }}" placeholder="Название группы..." style="flex:1;">
+            <button type="submit" class="btn btn-primary">Найти</button>
+        </div>
+    </form>
+    {% if groups %}
+    <div>
+        {% for g in groups %}
+        <div class="list-item">
+            <div>
+                <a href="{% url 'friends:group_detail' g.id %}">{{ g.name }}</a>
+                {% if g.description %}<span style="color:#999; margin-left:0.5rem;">{{ g.description|truncatewords:8 }}</span>{% endif %}
+            </div>
+            {% if g.id in user_group_ids %}
+            <span style="color:#27ae60;">Вы участник</span>
+            {% else %}
+            <a href="{% url 'friends:group_join' g.id %}" class="btn btn-primary btn-sm">Вступить</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:#999;">Группы не найдены</p>
+    {% endif %}
+</div>
+{% endblock %}

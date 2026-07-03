@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}{{ group.name }} — TugoBirthdays{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>{{ group.name }}</h2>
+    {% if group.description %}
+    <p style="color:#666;">{{ group.description }}</p>
+    {% endif %}
+    <div style="margin: 1rem 0; display:flex; gap:0.5rem; flex-wrap:wrap;">
+        {% if user == group.created_by %}
+        <a href="{% url 'friends:group_delete' group.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Удалить группу?')">Удалить группу</a>
+        {% elif is_member %}
+        <a href="{% url 'friends:group_leave' group.id %}" class="btn btn-danger btn-sm">Выйти из группы</a>
+        {% else %}
+        <a href="{% url 'friends:group_join' group.id %}" class="btn btn-primary btn-sm">Вступить в группу</a>
+        {% endif %}
+        <button class="sub-toggle {% if is_subscribed %}active{% endif %}" data-url="{% url 'notifications:subscribe_group' group.id %}" data-unsub-text="Подписаться на уведомления">{% if is_subscribed %}Отписаться{% else %}Подписаться на уведомления{% endif %}</button>
+    </div>
+    <h3>Участники ({{ members|length }})</h3>
+    <div style="margin-top: 0.5rem;">
+        {% for m in members %}
+        <div class="list-item">
+            <div>
+                <a href="{% url 'accounts:profile_view' m.id %}">{{ m.get_full_name|default:m.username }}</a>
+                {% if m == group.created_by %}
+                <span style="color:#e67e22; margin-left:0.5rem; font-size:0.85rem;">Админ</span>
+                {% endif %}
+            </div>
+            {% if m.profile.birthday %}
+            <span style="color:#999;">ДР: {{ m.profile.birthday|date:"d F" }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

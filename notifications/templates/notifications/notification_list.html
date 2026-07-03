@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Уведомления — TugoBirthdays{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Уведомления</h2>
+    {% if notifications %}
+    <div style="margin-top: 1rem;">
+        {% for n in notifications %}
+        <div class="list-item notif-item" id="notif-{{ n.id }}" style="background: {% if not n.is_read %}#fff3cd{% else %}transparent{% endif %};">
+            <div style="flex: 1;">
+                <p>{{ n.message }}</p>
+                <span style="color:#999; font-size:0.85rem;">{{ n.created_at|date:"d.m.Y H:i" }}</span>
+            </div>
+            <div style="display:flex; gap:0.3rem;">
+                {% if not n.is_read %}
+                <button class="btn btn-secondary btn-sm notif-read" data-url="{% url 'notifications:notification_read' n.id %}" data-notif-id="{{ n.id }}">Прочитано</button>
+                {% endif %}
+                <button class="btn btn-danger btn-sm notif-delete" data-url="{% url 'notifications:notification_delete' n.id %}" data-notif-id="{{ n.id }}">Удалить</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:#999; margin-top:1rem;">Нет уведомлений</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.notif-read').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            apiPost(btn.dataset.url).then(function() {
+                var item = document.getElementById('notif-' + btn.dataset.notifId);
+                item.style.background = 'transparent';
+                btn.remove();
+            });
+        });
+    });
+    document.querySelectorAll('.notif-delete').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            apiPost(btn.dataset.url).then(function() {
+                var item = document.getElementById('notif-' + btn.dataset.notifId);
+                item.style.transition = 'opacity 0.3s';
+                item.style.opacity = '0';
+                setTimeout(function() { item.remove(); }, 300);
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

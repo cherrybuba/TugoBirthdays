@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Чат о подарке — TugoBirthdays{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Обсуждение подарка для {{ target_user.get_full_name|default:target_user.username }}</h2>
+    <input type="hidden" id="chat-username" value="{{ user.get_full_name|default:user.username }}">
+    <div class="chat-container" style="margin-top: 1rem;">
+        <div class="chat-messages" id="chat-messages">
+            {% for msg in chat_messages %}
+            <div class="chat-message {% if msg.author == user %}mine{% endif %}">
+                <span class="author">{{ msg.author.get_full_name|default:msg.author.username }}</span>
+                <span class="time">{{ msg.created_at|date:"d.m.Y H:i" }}</span>
+                <div class="text">{{ msg.text }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chat-input" placeholder="Введите сообщение..." autocomplete="off">
+            <button class="btn btn-primary" id="chat-send">Отправить</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chat.js' %}"></script>
+<script>
+    initChat('{% url "gifts:discussion_stream" target_user.id %}',
+             '{% url "gifts:discussion_send" target_user.id %}',
+             {{ last_msg_id }});
+</script>
+{% endblock %}

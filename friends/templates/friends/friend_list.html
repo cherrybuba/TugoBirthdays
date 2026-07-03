@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Мои друзья — TugoBirthdays{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Мои друзья</h2>
+    <a href="{% url 'friends:friend_search' %}" class="btn btn-primary btn-sm" style="margin: 0.5rem 0;">Найти друзей</a>
+    {% if friends %}
+    <div style="margin-top: 1rem;">
+        {% for u in friends %}
+        <div class="list-item">
+            <div>
+                <a href="{% url 'accounts:profile_view' u.id %}">{{ u.get_full_name|default:u.username }}</a>
+                {% if u.profile.birthday %}
+                <span style="color:#999; margin-left:0.5rem;">ДР: {{ u.profile.birthday|date:"d F" }}</span>
+                {% endif %}
+            </div>
+            <a href="{% url 'friends:friend_remove' u.id %}" class="btn btn-danger btn-sm">Удалить</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:#999; margin-top:1rem;">У вас пока нет друзей.</p>
+    {% endif %}
+</div>
+
+{% if pending_requests %}
+<div class="card">
+    <h2>Заявки в друзья</h2>
+    <div style="margin-top: 1rem;">
+        {% for u in pending_requests %}
+        <div class="list-item">
+            <a href="{% url 'accounts:profile_view' u.id %}">{{ u.get_full_name|default:u.username }}</a>
+            <div>
+                <a href="{% url 'friends:friend_accept' u.id %}" class="btn btn-success btn-sm">Принять</a>
+                <a href="{% url 'friends:friend_reject' u.id %}" class="btn btn-danger btn-sm">Отклонить</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if subscribed_friends %}
+<div class="card">
+    <h2>Подписки</h2>
+    <div style="margin-top: 1rem;">
+        {% for u in subscribed_friends %}
+        <div class="list-item">
+            <div>
+                <a href="{% url 'accounts:profile_view' u.id %}">{{ u.get_full_name|default:u.username }}</a>
+                {% if u.profile.birthday %}
+                <span style="color:#999; margin-left:0.5rem;">ДР: {{ u.profile.birthday|date:"d F" }}</span>
+                {% endif %}
+            </div>
+            <span style="color:#3498db; font-size:0.85rem;">Подписан</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

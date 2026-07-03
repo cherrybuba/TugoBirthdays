@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Регистрация — TugoBirthdays{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 400px; margin: 2rem auto;">
+    <h2 style="text-align:center;">Регистрация</h2>
+    <form method="post" style="margin-top: 1rem;">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <p style="color: #e74c3c; font-size: 0.85rem;">{{ field.errors.0 }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary" style="width:100%;">Зарегистрироваться</button>
+    </form>
+    <p style="text-align:center; margin-top:1rem;">
+        Уже есть аккаунт? <a href="{% url 'accounts:login' %}">Войти</a>
+    </p>
+</div>
+{% endblock %}

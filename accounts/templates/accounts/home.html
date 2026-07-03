@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load calendar_extras %}
+{% block title %}Главная — TugoBirthdays{% endblock %}
+{% block content %}
+<h1 style="margin-bottom: 1rem;">Привет, {{ user.get_full_name|default:user.username }}!</h1>
+
+<div class="card">
+    <h2>Ближайшие дни рождения</h2>
+    {% if upcoming_birthdays %}
+    <div style="margin-top: 1rem;">
+        {% for days, u in upcoming_birthdays %}
+        <div class="list-item">
+            <div>
+                <a href="{% url 'accounts:profile_view' u.id %}"><strong>{{ u.get_full_name|default:u.username }}</strong></a>
+                <span style="color:#999; margin-left:0.5rem;">{{ u.profile.birthday|date:"d F" }}</span>
+                {% if days == 0 %}<span class="badge">Сегодня!</span>
+                {% else %}<span style="color:#666; margin-left:0.5rem;">через {{ days }} {{ days|pluralize:"день,дня,дней" }}</span>{% endif %}
+            </div>
+            <a href="{{ u.profile.birthday|google_calendar_url:u.get_full_name }}" target="_blank" class="btn btn-secondary btn-sm">+ Google Календарь</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: #999; margin-top: 0.5rem;">В ближайшие 30 дней дней рождения у ваших друзей нет. <a href="{% url 'friends:friend_search' %}">Найдите друзей</a>!</p>
+    {% endif %}
+</div>
+
+<div class="grid" style="margin-top: 1rem;">
+    <a href="{% url 'friends:friend_list' %}" class="card" style="text-align:center;">
+        <h3>Мои друзья</h3>
+    </a>
+    <a href="{% url 'friends:group_list' %}" class="card" style="text-align:center;">
+        <h3>Мои группы</h3>
+    </a>
+    <a href="{% url 'notifications:notification_list' %}" class="card" style="text-align:center;">
+        <h3>Уведомления {% if unread_count %}<span class="badge">{{ unread_count }}</span>{% endif %}</h3>
+    </a>
+</div>
+{% endblock %}

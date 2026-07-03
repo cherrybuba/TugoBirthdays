@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Мой профиль — TugoBirthdays{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Мой профиль</h2>
+    <form method="post" enctype="multipart/form-data" style="margin-top: 1rem;">
+        {% csrf_token %}
+        {% for field in user_form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <p style="color: #e74c3c; font-size: 0.85rem;">{{ field.errors.0 }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% for field in profile_form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <p style="color: #e74c3c; font-size: 0.85rem;">{{ field.errors.0 }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+</div>
+{% endblock %}

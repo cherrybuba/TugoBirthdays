@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Поиск друзей — TugoBirthdays{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Поиск пользователей</h2>
+    <form method="get" style="margin: 1rem 0;">
+        <div class="form-group" style="display:flex; gap:0.5rem;">
+            <input type="text" name="q" value="{{ query }}" placeholder="Введите имя..." style="flex:1;">
+            <button type="submit" class="btn btn-primary">Найти</button>
+        </div>
+    </form>
+    {% if users %}
+    <div>
+        {% for u in users %}
+        <div class="list-item">
+            <a href="{% url 'accounts:profile_view' u.id %}">{{ u.get_full_name|default:u.username }}</a>
+            {% if u.id in friend_ids %}
+            <span style="color:#27ae60;">Уже в друзьях</span>
+            {% elif u.id in pending_ids %}
+            <span style="color:#e67e22;">Заявка отправлена</span>
+            {% else %}
+            <a href="{% url 'friends:friend_add' u.id %}" class="btn btn-primary btn-sm">Добавить</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:#999;">Пользователи не найдены</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TugoBirthdays{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="{% url 'home' %}">TugoBirthdays</a>
+        </div>
+        <div class="nav-links">
+            {% if user.is_authenticated %}
+                <a href="{% url 'friends:friend_list' %}">Друзья</a>
+                <a href="{% url 'friends:group_list' %}">Группы</a>
+                <a href="{% url 'notifications:notification_list' %}" class="notif-link">
+                    Уведомления
+                    {% if unread_count %}<span class="badge">{{ unread_count }}</span>{% endif %}
+                </a>
+                <a href="{% url 'accounts:profile_edit' %}">{{ user.username }}</a>
+                <a href="{% url 'accounts:logout' %}">Выход</a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}">Вход</a>
+                <a href="{% url 'accounts:register' %}">Регистрация</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="container">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% if user.is_authenticated %}
+    <input type="hidden" id="notif-last-id" value="{{ last_notif_id }}">
+    <script>
+    (function() {
+        var lastId = document.getElementById('notif-last-id').value || 0;
+        var badge = document.querySelector('.notif-link .badge');
+        var es = null;
+
+        function startNotifStream() {
+            if (es) es.close();
+            es = new EventSource('{% url "notifications:notification_stream" %}?last_id=' + lastId);
+            es.onmessage = function(e) {
+                var n = JSON.parse(e.data);
+                lastId = n.id;
+                document.getElementById('notif-last-id').value = n.id;
+                if (badge) {
+                    var count = parseInt(badge.textContent || '0') + 1;
+                    badge.textContent = count;
+                } else {
+                    var link = document.querySelector('.notif-link');
+                    var newBadge = document.createElement('span');
+                    newBadge.className = 'badge';
+                    newBadge.textContent = '1';
+                    link.appendChild(newBadge);
+                    badge = newBadge;
+                }
+            };
+            es.onerror = function() {
+                es.close();
+                setTimeout(startNotifStream, 5000);
+            };
+        }
+
+        window.addEventListener('beforeunload', function() {
+            if (es) es.close();
+        });
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                if (es) es.close();
+            } else {
+                startNotifStream();
+            }
+        });
+
+        startNotifStream();
+    })();
+    </script>
+    {% endif %}
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
