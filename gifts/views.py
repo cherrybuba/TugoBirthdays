@@ -132,34 +132,6 @@ def discussion_send(request, user_id):
 
 
 @login_required
-def discussion_poll(request, user_id):
-    target_user = get_object_or_404(User, id=user_id)
-    if request.user == target_user:
-        return JsonResponse({'messages': []})
-    is_friend = Friendship.objects.filter(
-        from_user=request.user, to_user=target_user, status=Friendship.STATUS_ACCEPTED
-    ).exists()
-    if not is_friend:
-        return JsonResponse({'messages': []})
-
-    last_id = int(request.GET.get('last_id', 0))
-
-    discussion_obj = _get_or_create_discussion(target_user)
-    new_messages = discussion_obj.messages.filter(
-        id__gt=last_id
-    ).select_related('author')
-
-    data = [{
-        'id': m.id,
-        'author': m.author.get_full_name() or m.author.username,
-        'text': m.text,
-        'created_at': m.created_at.strftime('%d.%m.%Y %H:%M'),
-    } for m in new_messages]
-
-    return JsonResponse({'messages': data})
-
-
-@login_required
 def discussion_stream(request, user_id):
     target_user = get_object_or_404(User, id=user_id)
     if request.user == target_user:

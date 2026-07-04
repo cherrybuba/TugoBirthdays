@@ -7,6 +7,7 @@ from django.contrib import messages
 from .forms import RegistrationForm, ProfileForm, ProfileDetailForm
 from friends.models import GroupMembership, Friendship
 from gifts.models import WishlistItem
+from notifications.models import NotificationSubscription
 
 
 def home(request):
@@ -93,6 +94,7 @@ def profile_view(request, user_id):
 
     friendship_status = None
     is_friend = False
+    is_subscribed = False
     if request.user.is_authenticated and request.user != profile_user:
         friendship = Friendship.objects.filter(
             Q(from_user=request.user, to_user=profile_user) | Q(from_user=profile_user, to_user=request.user)
@@ -101,9 +103,6 @@ def profile_view(request, user_id):
             friendship_status = friendship.status
             is_friend = friendship.status == Friendship.STATUS_ACCEPTED
 
-    from notifications.models import NotificationSubscription
-    is_subscribed = False
-    if request.user.is_authenticated and request.user != profile_user:
         is_subscribed = NotificationSubscription.objects.filter(
             subscriber=request.user, friend=profile_user
         ).exists()
